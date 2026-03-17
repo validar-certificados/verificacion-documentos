@@ -20,9 +20,8 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Open Sans', sans-serif; }
-        body { background-color: var(--gris-fondo); color: var(--texto-negro); }
+        body { background-color: var(--gris-fondo); color: var(--texto-negro); padding-bottom: 50px; }
 
-        /* Header */
         .top-bar {
             background: #fff;
             padding: 10px 20px;
@@ -40,20 +39,20 @@
             padding: 0 15px;
         }
 
-        /* Banner de Éxito (Oculto por defecto) */
+        /* Banner de Éxito Estilo ChileAtiende */
         #successBanner {
             display: none;
-            background-color: #f0fdf4;
+            background-color: #ffffff;
             border: 1px solid var(--verde-exito);
-            color: #166534;
-            padding: 15px;
+            color: var(--verde-exito);
+            padding: 18px;
             border-radius: 4px;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             text-align: center;
             font-weight: 600;
+            font-size: 16px;
         }
-
-        #successBanner i { color: var(--verde-exito); margin-right: 10px; }
+        #successBanner i { margin-right: 10px; }
 
         /* Card Formulario */
         .card-verificacion {
@@ -61,21 +60,23 @@
             border-radius: 4px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             border-top: 5px solid var(--azul-institucional);
-            margin-bottom: 20px;
+            margin-bottom: 30px;
         }
         .card-header { padding: 25px 30px 10px; }
-        .card-header h2 { font-size: 22px; color: var(--azul-institucional); }
+        .card-header h2 { font-size: 22px; color: var(--azul-institucional); font-weight: 700; }
         .card-body { padding: 20px 30px 35px; }
 
         .form-group { margin-bottom: 20px; }
         .form-group label { display: block; font-weight: 700; font-size: 14px; margin-bottom: 8px; }
         .input-text {
             width: 100%;
-            height: 45px;
+            height: 48px;
             padding: 10px 15px;
             border: 1px solid var(--gris-borde);
             border-radius: 4px;
+            font-size: 15px;
         }
+        .input-text:focus { outline: none; border-color: var(--azul-institucional); }
 
         .btn-consultar {
             background-color: var(--azul-institucional);
@@ -84,22 +85,25 @@
             width: 100%;
             height: 50px;
             font-weight: 700;
+            font-size: 16px;
             border-radius: 4px;
             cursor: pointer;
+            transition: 0.3s;
         }
+        .btn-consultar:hover { background-color: #0d5999; }
 
-        /* Visor de PDF (Oculto por defecto) */
-        #pdfContainer {
+        /* Visor de PDF (Recuadro Negro) */
+        #pdfWrapper {
             display: none;
             width: 100%;
-            background: #333;
+            background: #1a1a1a;
             border-radius: 4px;
-            overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            padding: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
         #pdfViewer {
             width: 100%;
-            height: 600px;
+            height: 700px; /* Altura para ver bien el documento */
             border: none;
         }
 
@@ -120,7 +124,7 @@
         </div>
 
         <!-- Formulario -->
-        <div class="card-verificacion" id="formCard">
+        <div class="card-verificacion">
             <div class="card-header">
                 <h2>Verificación de certificados</h2>
             </div>
@@ -128,19 +132,19 @@
                 <form id="verificadorForm">
                     <div class="form-group">
                         <label>Folio *</label>
-                        <input type="text" id="folio" class="input-text" placeholder="Ingrese folio" required>
+                        <input type="text" id="folio" class="input-text" placeholder="Ej: 5006141..." required>
                     </div>
                     <div class="form-group">
                         <label>Código de Verificación *</label>
-                        <input type="text" id="codigo" class="input-text" placeholder="Ingrese código" required>
+                        <input type="text" id="codigo" class="input-text" placeholder="Ej: ANT_FE_..." required>
                     </div>
                     <button type="submit" id="btnSubmit" class="btn-consultar">Consultar</button>
                 </form>
             </div>
         </div>
 
-        <!-- Contenedor del PDF -->
-        <div id="pdfContainer">
+        <!-- Contenedor del PDF (Visor Negro) -->
+        <div id="pdfWrapper">
             <iframe id="pdfViewer"></iframe>
         </div>
     </div>
@@ -151,55 +155,67 @@
         const form = document.getElementById('verificadorForm');
         const btn = document.getElementById('btnSubmit');
         const successBanner = document.getElementById('successBanner');
-        const pdfContainer = document.getElementById('pdfContainer');
+        const pdfWrapper = document.getElementById('pdfWrapper');
         const pdfViewer = document.getElementById('pdfViewer');
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            // Reset de vista
+            // Reset UI
             successBanner.style.display = 'none';
-            pdfContainer.style.display = 'none';
-            
+            pdfWrapper.style.display = 'none';
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Consultando...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Consultando...';
 
-            const data = {
-                folio: document.getElementById('folio').value,
-                codigoVerificacion: document.getElementById('codigo').value
+            const payload = {
+                folio: document.getElementById('folio').value.trim(),
+                codigoVerificacion: document.getElementById('codigo').value.trim()
             };
 
             try {
                 const response = await fetch('https://hook.us2.make.com/iq6ps3txx1jaxr91mje7sx47ynbta3kb', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
+                    body: JSON.stringify(payload)
                 });
 
                 const result = await response.json();
 
                 if (result.found && result.pdf) {
-                    // 1. Mostrar banner de éxito
+                    // Mostrar banner verde
                     successBanner.style.display = 'block';
                     
-                    // 2. Cargar PDF en el iframe
-                    // Usamos el Base64 directamente como fuente del iframe
-                    pdfViewer.src = `data:application/pdf;base64,${result.pdf}#toolbar=0&navpanes=0`;
-                    pdfContainer.style.display = 'block';
+                    // Cargar PDF en el recuadro negro
+                    // Usamos un Blob para asegurar compatibilidad en todos los navegadores
+                    const byteCharacters = atob(result.pdf);
+                    const byteNumbers = new Array(byteCharacters.length);
+                    for (let i = 0; i < byteCharacters.length; i++) {
+                        byteNumbers[i] = byteCharacters.charCodeAt(i);
+                    }
+                    const byteArray = new Uint8Array(byteNumbers);
+                    const file = new Blob([byteArray], { type: 'application/pdf' });
+                    const fileURL = URL.createObjectURL(file);
 
-                    // Scroll suave hacia el resultado
+                    pdfViewer.src = `${fileURL}#toolbar=0`;
+                    pdfWrapper.style.display = 'block';
+
+                    // Scroll al banner
                     successBanner.scrollIntoView({ behavior: 'smooth' });
 
                 } else {
                     Swal.fire({
                         title: 'Documento no válido',
-                        text: 'No se encontró un certificado que coincida con los datos ingresados.',
+                        text: 'No se encontró un documento que coincida con el Folio y Código ingresados.',
                         icon: 'error',
                         confirmButtonColor: '#cc292b'
                     });
                 }
             } catch (error) {
-                Swal.fire({ title: 'Error', text: 'Servidor no disponible', icon: 'error' });
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Hubo un problema al conectar con el validador.',
+                    icon: 'error'
+                });
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = 'Consultar';
