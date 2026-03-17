@@ -5,145 +5,170 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Verificación de Certificados - ChileAtiende</title>
     
+    <!-- Fuentes e Iconos -->
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    
+    <!-- SweetAlert2 para errores -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
         :root {
             --azul-institucional: #0f69b4;
             --rojo-gob: #cc292b;
-            --verde-exito: #4caf50;
-            --gris-fondo: #f9f9f9;
+            --verde-exito: #2e7d32;
+            --gris-fondo: #f1f1f1;
             --gris-borde: #cccccc;
             --texto-negro: #333333;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Open Sans', sans-serif; }
-        body { background-color: var(--gris-fondo); color: var(--texto-negro); padding-bottom: 50px; }
+        
+        body { 
+            background-color: var(--gris-fondo); 
+            color: var(--texto-negro);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
 
+        /* Header Estilo Gobierno */
         .top-bar {
             background: #fff;
-            padding: 10px 20px;
-            border-bottom: 1px solid #eee;
+            padding: 15px 30px;
+            border-bottom: 1px solid #ddd;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
         .logo-cha { height: 45px; }
+        .bandera-gob { height: 40px; }
 
         .container {
             width: 100%;
-            max-width: 800px;
+            max-width: 850px;
             margin: 40px auto;
-            padding: 0 15px;
+            padding: 0 20px;
+            flex-grow: 1;
         }
 
-        /* Banner de Éxito Estilo ChileAtiende */
+        /* Banner de Éxito */
         #successBanner {
             display: none;
-            background-color: #ffffff;
+            background-color: #e8f5e9;
             border: 1px solid var(--verde-exito);
             color: var(--verde-exito);
-            padding: 18px;
+            padding: 20px;
             border-radius: 4px;
             margin-bottom: 25px;
             text-align: center;
             font-weight: 600;
             font-size: 16px;
         }
-        #successBanner i { margin-right: 10px; }
 
-        /* Card Formulario */
+        /* Card del Formulario */
         .card-verificacion {
             background: #fff;
             border-radius: 4px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             border-top: 5px solid var(--azul-institucional);
             margin-bottom: 30px;
         }
-        .card-header { padding: 25px 30px 10px; }
-        .card-header h2 { font-size: 22px; color: var(--azul-institucional); font-weight: 700; }
-        .card-body { padding: 20px 30px 35px; }
+        .card-header { padding: 30px 40px 10px; border-bottom: 1px solid #f0f0f0; }
+        .card-header h2 { font-size: 24px; color: var(--azul-institucional); font-weight: 700; }
+        .card-body { padding: 30px 40px; }
 
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; font-weight: 700; font-size: 14px; margin-bottom: 8px; }
+        .form-group { margin-bottom: 25px; }
+        .form-group label { display: block; font-weight: 700; font-size: 15px; margin-bottom: 10px; }
         .input-text {
             width: 100%;
-            height: 48px;
-            padding: 10px 15px;
+            height: 50px;
+            padding: 12px 15px;
             border: 1px solid var(--gris-borde);
             border-radius: 4px;
-            font-size: 15px;
+            font-size: 16px;
+            transition: border 0.3s;
         }
-        .input-text:focus { outline: none; border-color: var(--azul-institucional); }
+        .input-text:focus { outline: none; border-color: var(--azul-institucional); box-shadow: 0 0 0 3px rgba(15,105,180,0.1); }
 
         .btn-consultar {
             background-color: var(--azul-institucional);
             color: #fff;
             border: none;
             width: 100%;
-            height: 50px;
+            height: 55px;
             font-weight: 700;
-            font-size: 16px;
+            font-size: 18px;
             border-radius: 4px;
             cursor: pointer;
-            transition: 0.3s;
+            transition: background 0.3s;
         }
         .btn-consultar:hover { background-color: #0d5999; }
+        .btn-consultar:disabled { background-color: #ccc; cursor: not-allowed; }
 
         /* Visor de PDF (Recuadro Negro) */
         #pdfWrapper {
             display: none;
             width: 100%;
-            background: #1a1a1a;
+            background: #2c2c2c;
             border-radius: 4px;
-            padding: 10px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            padding: 15px;
+            margin-top: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         }
         #pdfViewer {
             width: 100%;
-            height: 700px; /* Altura para ver bien el documento */
+            height: 750px;
             border: none;
+            background: #fff;
         }
 
-        .footer-line { height: 5px; background-color: var(--rojo-gob); margin-top: 40px; }
+        /* Footer Decorativo */
+        .footer-line { height: 6px; background-color: var(--rojo-gob); width: 100%; }
+
+        @media (max-width: 600px) {
+            .card-header, .card-body { padding: 20px; }
+            #pdfViewer { height: 500px; }
+        }
     </style>
 </head>
 <body>
 
     <div class="top-bar">
         <img src="https://www.chileatiende.gob.cl/images/logo-cha.svg" alt="ChileAtiende" class="logo-cha">
-        <img src="https://www.chileatiende.gob.cl/images/gob.svg" alt="Gobierno de Chile" height="40">
+        <div style="display: flex; gap: 10px;">
+            <div style="width: 40px; height: 40px; background: #0039a6;"></div>
+            <div style="width: 40px; height: 40px; background: #d52b1e;"></div>
+        </div>
     </div>
 
     <div class="container">
-        <!-- Mensaje de éxito -->
+        <!-- Banner de éxito -->
         <div id="successBanner">
             <i class="fas fa-check-circle"></i> El certificado es válido, verifique los datos en el documento generado
         </div>
 
-        <!-- Formulario -->
-        <div class="card-verificacion">
+        <!-- Formulario de Entrada -->
+        <div class="card-verificacion" id="mainCard">
             <div class="card-header">
                 <h2>Verificación de certificados</h2>
             </div>
             <div class="card-body">
                 <form id="verificadorForm">
                     <div class="form-group">
-                        <label>Folio *</label>
-                        <input type="text" id="folio" class="input-text" placeholder="Ej: 5006141..." required>
+                        <label for="folio">Folio *</label>
+                        <input type="text" id="folio" class="input-text" placeholder="Ingrese el número de folio" required>
                     </div>
                     <div class="form-group">
-                        <label>Código de Verificación *</label>
-                        <input type="text" id="codigo" class="input-text" placeholder="Ej: ANT_FE_..." required>
+                        <label for="codigo">Código de Verificación *</label>
+                        <input type="text" id="codigo" class="input-text" placeholder="Ingrese el código de verificación" required>
                     </div>
                     <button type="submit" id="btnSubmit" class="btn-consultar">Consultar</button>
                 </form>
             </div>
         </div>
 
-        <!-- Contenedor del PDF (Visor Negro) -->
+        <!-- Visor del Documento -->
         <div id="pdfWrapper">
             <iframe id="pdfViewer"></iframe>
         </div>
@@ -161,60 +186,69 @@
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            // Reset UI
+            // Limpiar estados previos
             successBanner.style.display = 'none';
             pdfWrapper.style.display = 'none';
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Consultando...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Consultando validador...';
 
+            // Capturar datos y limpiar espacios en blanco (trim)
             const payload = {
                 folio: document.getElementById('folio').value.trim(),
                 codigoVerificacion: document.getElementById('codigo').value.trim()
             };
 
             try {
+                // LLAMADA AL WEBHOOK
                 const response = await fetch('https://hook.us2.make.com/iq6ps3txx1jaxr91mje7sx47ynbta3kb', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
 
+                if (!response.ok) throw new Error('Servidor no responde');
+
                 const result = await response.json();
 
                 if (result.found && result.pdf) {
-                    // Mostrar banner verde
+                    // 1. Mostrar Banner Verde
                     successBanner.style.display = 'block';
-                    
-                    // Cargar PDF en el recuadro negro
-                    // Usamos un Blob para asegurar compatibilidad en todos los navegadores
-                    const byteCharacters = atob(result.pdf);
+
+                    // 2. Procesar Base64 a Blob para el Visor
+                    const base64Clean = result.pdf.replace(/^data:application\/pdf;base64,/, "");
+                    const byteCharacters = atob(base64Clean);
                     const byteNumbers = new Array(byteCharacters.length);
                     for (let i = 0; i < byteCharacters.length; i++) {
                         byteNumbers[i] = byteCharacters.charCodeAt(i);
                     }
                     const byteArray = new Uint8Array(byteNumbers);
-                    const file = new Blob([byteArray], { type: 'application/pdf' });
-                    const fileURL = URL.createObjectURL(file);
+                    const fileBlob = new Blob([byteArray], { type: 'application/pdf' });
+                    const fileURL = URL.createObjectURL(fileBlob);
 
-                    pdfViewer.src = `${fileURL}#toolbar=0`;
+                    // 3. Cargar en el iframe
+                    pdfViewer.src = `${fileURL}#toolbar=0&navpanes=0`;
                     pdfWrapper.style.display = 'block';
 
-                    // Scroll al banner
+                    // 4. Scroll suave al resultado
                     successBanner.scrollIntoView({ behavior: 'smooth' });
 
                 } else {
+                    // Caso: Archivo no encontrado en Drive
                     Swal.fire({
                         title: 'Documento no válido',
-                        text: 'No se encontró un documento que coincida con el Folio y Código ingresados.',
+                        text: 'El folio o código ingresado no coinciden con ningún registro oficial.',
                         icon: 'error',
                         confirmButtonColor: '#cc292b'
                     });
                 }
+
             } catch (error) {
+                console.error("Error:", error);
                 Swal.fire({
-                    title: 'Error',
-                    text: 'Hubo un problema al conectar con el validador.',
-                    icon: 'error'
+                    title: 'Error de Conexión',
+                    text: 'No se pudo establecer comunicación con el validador. Verifique su conexión o intente más tarde.',
+                    icon: 'warning',
+                    confirmButtonColor: '#0f69b4'
                 });
             } finally {
                 btn.disabled = false;
