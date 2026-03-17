@@ -2,195 +2,252 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verificación de Documentos</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Verificación de Certificados - ChileAtiende</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <style>
         :root {
-            --primary-color: #2563eb;
-            --primary-hover: #1d4ed8;
-            --bg-color: #f8fafc;
-            --card-bg: #ffffff;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
+            --azul-institucional: #0f69b4;
+            --rojo-gob: #cc292b;
+            --gris-fondo: #f9f9f9;
+            --gris-borde: #cccccc;
+            --texto-negro: #333333;
+            --texto-gris: #666666;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Open Sans', sans-serif;
         }
 
         body {
-            background-color: var(--bg-color);
+            background-color: var(--gris-fondo);
+            color: var(--texto-negro);
+            line-height: 1.6;
+        }
+
+        /* Header / Logo de Gobierno */
+        .top-bar {
+            background: #fff;
+            padding: 10px 20px;
+            border-bottom: 1px solid #eee;
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
-            min-height: 100vh;
-            padding: 20px;
+        }
+
+        .logo-cha {
+            height: 45px;
         }
 
         .container {
-            background-color: var(--card-bg);
             width: 100%;
-            max-width: 450px;
-            padding: 40px;
-            border-radius: 16px;
-            shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 0 15px;
         }
 
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
+        /* Estilo del Formulario (Identico al portal) */
+        .card-verificacion {
+            background: #fff;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            border-top: 5px solid var(--azul-institucional);
+            overflow: hidden;
         }
 
-        .header h1 {
-            color: var(--text-main);
-            font-size: 24px;
-            margin-bottom: 8px;
+        .card-header {
+            padding: 25px 30px 10px;
         }
 
-        .header p {
-            color: var(--text-muted);
-            font-size: 14px;
+        .card-header h2 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--azul-institucional);
+        }
+
+        .card-body {
+            padding: 20px 30px 35px;
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
 
-        label {
+        .form-group label {
             display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: var(--text-main);
+            font-weight: 700;
             font-size: 14px;
+            margin-bottom: 10px;
         }
 
-        input {
+        .form-group label span {
+            color: var(--rojo-gob);
+        }
+
+        .input-text {
             width: 100%;
-            padding: 12px 16px;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            font-size: 16px;
+            height: 48px;
+            padding: 10px 15px;
+            border: 1px solid var(--gris-borde);
+            border-radius: 4px;
+            font-size: 15px;
+            color: var(--texto-negro);
             transition: border-color 0.2s;
         }
 
-        input:focus {
+        .input-text:focus {
             outline: none;
-            border-color: var(--primary-color);
-            ring: 2px solid var(--primary-color);
+            border-color: var(--azul-institucional);
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.075), 0 0 5px rgba(15,105,180,0.3);
         }
 
-        button {
-            width: 100%;
-            background-color: var(--primary-color);
-            color: white;
-            padding: 14px;
+        .obligatorio-msg {
+            font-size: 13px;
+            color: var(--texto-gris);
+            margin-bottom: 25px;
+        }
+
+        /* Botón estilo app_new.css */
+        .btn-consultar {
+            background-color: var(--azul-institucional);
+            color: #fff;
             border: none;
-            border-radius: 8px;
+            width: 100%;
+            height: 50px;
             font-size: 16px;
-            font-weight: 600;
+            font-weight: 700;
+            border-radius: 4px;
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: background 0.3s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
-        button:hover {
-            background-color: var(--primary-hover);
+        .btn-consultar:hover {
+            background-color: #0d5999;
         }
 
-        button:disabled {
-            background-color: #cbd5e1;
+        .btn-consultar:disabled {
+            background-color: #cccccc;
             cursor: not-allowed;
         }
 
-        #result {
-            margin-top: 25px;
-            padding: 15px;
-            border-radius: 8px;
-            display: none;
-            text-align: center;
-            font-size: 14px;
+        /* Footer / Decoración Roja inferior */
+        .footer-line {
+            height: 5px;
+            background-color: var(--rojo-gob);
+            margin-top: 40px;
         }
 
-        .success { background-color: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
-        .error { background-color: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
-
-        /* Mobile adjustments */
-        @media (max-width: 480px) {
+        /* Media Queries para Mobile */
+        @media (max-width: 600px) {
             .container {
-                padding: 25px;
+                margin: 20px auto;
             }
-            .header h1 {
-                font-size: 20px;
+            .card-header h2 {
+                font-size: 19px;
+            }
+            .card-body {
+                padding: 15px 20px 30px;
             }
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="header">
-        <h1>Verificador Oficial</h1>
-        <p>Ingrese el código del documento para validar su autenticidad.</p>
+    <div class="top-bar">
+        <img src="https://www.chileatiende.gob.cl/images/logo-cha.svg" alt="ChileAtiende" class="logo-cha">
+        <img src="https://www.chileatiende.gob.cl/images/gob.svg" alt="Gobierno de Chile" height="40">
     </div>
 
-    <form id="verificationForm">
-        <div class="form-group">
-            <label for="documentId">Código de Verificación</label>
-            <input type="text" id="documentId" name="documentId" placeholder="Ej: DOC-123456" required>
+    <div class="container">
+        <div class="card-verificacion">
+            <div class="card-header">
+                <h2>Verificación de certificados</h2>
+            </div>
+            
+            <div class="card-body">
+                <form id="verificadorForm">
+                    <div class="form-group">
+                        <label for="folio">Folio <span>*</span></label>
+                        <input type="text" id="folio" name="folio" class="input-text" placeholder="Ingrese un Folio" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="codigo">Código de Verificación <span>*</span></label>
+                        <input type="text" id="codigo" name="codigo" class="input-text" placeholder="Ingrese un Código de Verificación" required>
+                    </div>
+
+                    <p class="obligatorio-msg">Los campos marcados con <span>*</span> son obligatorios</p>
+
+                    <button type="submit" id="btnSubmit" class="btn-consultar">
+                        Consultar
+                    </button>
+                </form>
+            </div>
         </div>
-        <button type="submit" id="submitBtn">Verificar Documento</button>
-    </form>
+    </div>
 
-    <div id="result"></div>
-</div>
+    <div class="footer-line"></div>
 
-<script>
-    const form = document.getElementById('verificationForm');
-    const resultDiv = document.getElementById('result');
-    const submitBtn = document.getElementById('submitBtn');
+    <script>
+        const form = document.getElementById('verificadorForm');
+        const btn = document.getElementById('btnSubmit');
 
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        // UI State
-        submitBtn.disabled = true;
-        submitBtn.innerText = 'Verificando...';
-        resultDiv.style.display = 'none';
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
 
-        const formData = {
-            documentId: document.getElementById('documentId').value,
-            timestamp: new Date().toISOString()
-        };
+            // Desactivar botón y mostrar estado de carga
+            btn.disabled = true;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> &nbsp; Consultando...';
 
-        try {
-            const response = await fetch('https://hook.us2.make.com/iq6ps3txx1jaxr91mje7sx47ynbta3kb', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(formData)
-            });
+            const data = {
+                folio: document.getElementById('folio').value,
+                codigoVerificacion: document.getElementById('codigo').value,
+                timestamp: new Date().toISOString()
+            };
 
-            if (response.ok) {
-                // Aquí puedes personalizar el mensaje según lo que responda tu escenario de Make
-                resultDiv.className = 'success';
-                resultDiv.innerText = 'Solicitud enviada correctamente. El resultado se procesará en breve.';
-            } else {
-                throw new Error('Error en la conexión');
+            try {
+                // Conexión al Webhook de tu escenario de Make
+                const response = await fetch('https://hook.us2.make.com/iq6ps3txx1jaxr91mje7sx47ynbta3kb', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    Swal.fire({
+                        title: '¡Recibido!',
+                        text: 'La consulta ha sido enviada exitosamente.',
+                        icon: 'success',
+                        confirmButtonColor: '#0f69b4'
+                    });
+                    form.reset();
+                } else {
+                    throw new Error();
+                }
+            } catch (error) {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'No se pudo procesar la solicitud. Intente más tarde.',
+                    icon: 'error',
+                    confirmButtonColor: '#cc292b'
+                });
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
             }
-        } catch (error) {
-            resultDiv.className = 'error';
-            resultDiv.innerText = 'Hubo un error al conectar con el servidor. Intente más tarde.';
-        } finally {
-            resultDiv.style.display = 'block';
-            submitBtn.disabled = false;
-            submitBtn.innerText = 'Verificar Documento';
-        }
-    });
-</script>
-
+        });
+    </script>
 </body>
 </html>
