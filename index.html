@@ -12,7 +12,7 @@
         :root {
             --azul-institucional: #0f69b4;
             --rojo-gob: #cc292b;
-            --verde-exito: #2e7d32;
+            --verde-exito: #4caf50;
             --gris-fondo: #f4f4f4;
             --gris-borde: #cccccc;
             --texto-negro: #333333;
@@ -21,6 +21,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Open Sans', sans-serif; }
         body { background-color: var(--gris-fondo); color: var(--texto-negro); min-height: 100vh; }
 
+        /* ── HEADER CHILEATIENDE ── */
         .top-bar {
             background: #fff;
             padding: 15px 30px;
@@ -38,19 +39,7 @@
             padding: 0 20px;
         }
 
-        /* ── SPINNER STYLE ── */
-        .spinner { display: none; text-align: center; padding: 20px 0; }
-        .spinner.active { display: block; }
-        .spinner svg { animation: spin .9s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* ── RESULT BOXES ── */
-        #result-box { display: none; margin-top: 24px; border-radius: 4px; overflow: hidden; border: 1px solid #ddd; background: #fff;}
-        #result-box.visible { display: block; }
-        .result-header { padding: 15px 20px; font-weight: 600; font-size: 1rem; display: flex; align-items: center; gap: 10px; }
-        .result-body { padding: 0; background: #1a1a1a; font-size: 0.88rem; }
-        .error-body { padding: 20px; background: #fff; text-align: center; font-size: 1rem; color: #555;}
-
+        /* ── CARD FORMULARIO ── */
         .card-verificacion {
             background: #fff;
             border-radius: 4px;
@@ -88,6 +77,19 @@
         .btn-consultar:hover { background-color: #0d5999; }
         .btn-consultar:disabled { background-color: #a0c4e1; cursor: not-allowed; }
 
+        /* ── SPINNER CUPRUM ADAPTADO ── */
+        .spinner { display: none; text-align: center; padding: 20px 0; }
+        .spinner.active { display: block; }
+        .spinner svg { animation: spin .9s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── RESULT BOXES ── */
+        #result-box { display: none; margin-top: 24px; border-radius: 4px; overflow: hidden; border: 1px solid #ddd; background: #fff;}
+        #result-box.visible { display: block; }
+        .result-header { padding: 15px 20px; font-weight: 600; font-size: 1rem; display: flex; align-items: center; gap: 10px; }
+        .result-body { padding: 0; background: #1a1a1a; }
+        .error-body { padding: 20px; background: #fff; text-align: center; font-size: 1rem; color: #555;}
+
         .footer-line { height: 6px; background-color: var(--rojo-gob); margin-top: 40px; }
     </style>
 </head>
@@ -100,7 +102,7 @@
 
     <div class="container">
         
-        <!-- CARD DE VERIFICACIÓN -->
+        <!-- FORMULARIO FRONT-END -->
         <div class="card-verificacion">
             <div class="card-header">
                 <h2>Verificación de certificados</h2>
@@ -120,16 +122,16 @@
             </div>
         </div>
 
-        <!-- SPINNER DE CARGA -->
+        <!-- SPINNER BACK-END -->
         <div class="spinner" id="spinner">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
                 <circle cx="12" cy="12" r="10" stroke="#cccccc" stroke-width="3"/>
                 <path d="M12 2a10 10 0 0 1 10 10" stroke="#0f69b4" stroke-width="3" stroke-linecap="round"/>
             </svg>
-            <p style="margin-top:10px;color:#666;font-size:0.9rem;font-weight:600;">Consultando servidor...</p>
+            <p style="margin-top:10px;color:#666;font-size:0.9rem;font-weight:600;">Consultando...</p>
         </div>
 
-        <!-- CONTENEDOR DE RESULTADOS (PDF o ERRORES) -->
+        <!-- CONTENEDOR DE RESULTADOS -->
         <div id="result-box">
             <div class="result-header" id="result-header"></div>
             <div class="result-body" id="result-body"></div>
@@ -139,7 +141,7 @@
 
     <div class="footer-line"></div>
 
-    <!-- SCRIPT DEL BACK-END -->
+    <!-- ── LÓGICA BACK-END EXACTA DE CUPRUM ── -->
     <script>
         const WEBHOOK = 'https://hook.us2.make.com/iq6ps3txx1jaxr91mje7sx47ynbta3kb';
 
@@ -147,10 +149,13 @@
             const folio = document.getElementById('folio').value.trim();
             const codigo = document.getElementById('codigo').value.trim();
             
-            const payload = {
-                folio: folio,
-                codigoVerificacion: codigo
-            };
+            // EL SECRETO: Enviar uuid como lo hacía Cuprum para que Make lo reconozca
+            const uuid = folio; 
+            
+            if (!folio || !codigo) { 
+                alert('Por favor ingresa los datos requeridos.'); 
+                return; 
+            }
             
             const btn = document.getElementById('btn-aceptar');
             btn.disabled = true;
@@ -158,15 +163,15 @@
             document.getElementById('spinner').classList.add('active');
             document.getElementById('result-box').classList.remove('visible');
 
-            // Timeout de 30 segundos de seguridad
             const controller = new AbortController();
             const timeout = setTimeout(() => controller.abort(), 30000);
 
             try {
+                // Exactamente el mismo Fetch de Cuprum
                 const res = await fetch(WEBHOOK, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                    body: JSON.stringify(payload),
+                    body: JSON.stringify({ uuid: uuid, afp: 'ChileAtiende', codigoVerificacion: codigo }),
                     signal: controller.signal
                 });
                 
@@ -180,20 +185,17 @@
                 const bdy = document.getElementById('result-body');
                 
                 if (data.found === true && data.pdf) {
-                    // Diseño de Éxito
+                    // Mismo render de PDF de Cuprum, estilo ChileAtiende
                     hdr.className = 'result-header';
                     hdr.style.cssText = 'background: #f0fdf4; color: #166534; border: 1px solid #4caf50; border-bottom: none;';
                     hdr.innerHTML = `<i class="fas fa-check-circle" style="color: #4caf50; font-size:1.2rem;"></i> <strong>El certificado es válido, verifique los datos en el documento generado</strong>`;
                     
-                    // LÓGICA DE PDF CORREGIDA (Directo por Base64 URI)
-                    const base64Clean = data.pdf.replace(/^data:application\/pdf;base64,/, "");
-                    const pdfDataUri = "data:application/pdf;base64," + base64Clean;
-
+                    const pdfData = data.pdf.startsWith('data:') ? data.pdf : 'data:application/pdf;base64,' + data.pdf;
+                    
                     bdy.style.padding = '10px';
-                    bdy.innerHTML = `<iframe src="${pdfDataUri}" style="width:100%;height:750px;border:none;background:#fff;" title="Certificado PDF"></iframe>`;
+                    bdy.innerHTML = `<iframe src="${pdfData}#toolbar=0" style="width:100%;height:750px;border:none;background:#fff;" title="Certificado PDF"></iframe>`;
                     
                 } else if (data.found === false) {
-                    // Diseño de Error (No encontrado)
                     hdr.className = 'result-header';
                     hdr.style.cssText = 'background: #fdf3f2; color: #cc292b; border: 1px solid #cc292b; border-bottom: none;';
                     hdr.innerHTML = `<i class="fas fa-exclamation-triangle" style="color: #cc292b; font-size:1.2rem;"></i> <strong>Certificado no válido</strong>`;
@@ -201,7 +203,6 @@
                     bdy.innerHTML = `<div class="error-body">No se encontró ningún certificado con los datos ingresados. Revise la información e intente nuevamente.</div>`;
                     
                 } else {
-                    // Respuesta Inesperada
                     hdr.className = 'result-header';
                     hdr.style.cssText = 'background: #fdf3f2; color: #cc292b; border: 1px solid #cc292b; border-bottom: none;';
                     hdr.innerHTML = `<i class="fas fa-exclamation-circle" style="color: #cc292b; font-size:1.2rem;"></i> <strong>Respuesta inesperada</strong>`;
