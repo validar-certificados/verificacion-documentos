@@ -2,71 +2,208 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Verificación de Certificados - ChileAtiende</title>
+    
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <style>
-        :root { --azul: #0f69b4; --rojo: #cc292b; --verde: #2e7d32; }
+        :root {
+            --azul-institucional: #0f69b4;
+            --rojo-gob: #cc292b;
+            --verde-exito: #2e7d32;
+            --gris-fondo: #f4f4f4;
+            --gris-borde: #cccccc;
+            --texto-negro: #333333;
+        }
+
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Open Sans', sans-serif; }
-        body { background-color: #f4f4f4; padding-bottom: 50px; }
-        .top-bar { background: #fff; padding: 15px 30px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; }
-        .container { max-width: 850px; margin: 40px auto; padding: 0 20px; }
-        #successBanner { display: none; background: #fff; border: 1px solid var(--verde); color: var(--verde); padding: 20px; border-radius: 4px; margin-bottom: 25px; text-align: center; font-weight: 600; }
-        .card { background: #fff; border-radius: 4px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); border-top: 5px solid var(--azul); padding: 30px; margin-bottom: 30px; }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; font-weight: 700; margin-bottom: 8px; }
-        input { width: 100%; height: 45px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
-        button { background: var(--azul); color: #fff; border: none; width: 100%; height: 50px; font-weight: 700; cursor: pointer; border-radius: 4px; }
-        #pdfWrapper { display: none; background: #333; padding: 10px; border-radius: 4px; }
-        iframe { width: 100%; height: 750px; border: none; background: #fff; }
+        body { background-color: var(--gris-fondo); color: var(--texto-negro); min-height: 100vh; }
+
+        .top-bar {
+            background: #fff;
+            padding: 15px 30px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo-cha { height: 45px; }
+
+        .container {
+            width: 100%;
+            max-width: 850px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        #successBanner {
+            display: none;
+            background-color: #ffffff;
+            border: 1px solid var(--verde-exito);
+            color: var(--verde-exito);
+            padding: 20px;
+            border-radius: 4px;
+            margin-bottom: 25px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .card-verificacion {
+            background: #fff;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-top: 5px solid var(--azul-institucional);
+            margin-bottom: 30px;
+        }
+        .card-header { padding: 30px 40px 10px; }
+        .card-header h2 { font-size: 24px; color: var(--azul-institucional); font-weight: 700; }
+        .card-body { padding: 30px 40px; }
+
+        .form-group { margin-bottom: 25px; }
+        .form-group label { display: block; font-weight: 700; font-size: 15px; margin-bottom: 10px; }
+        .input-text {
+            width: 100%;
+            height: 50px;
+            padding: 12px 15px;
+            border: 1px solid var(--gris-borde);
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .btn-consultar {
+            background-color: var(--azul-institucional);
+            color: #fff;
+            border: none;
+            width: 100%;
+            height: 55px;
+            font-weight: 700;
+            font-size: 18px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-consultar:hover { background-color: #0d5999; }
+
+        #pdfWrapper {
+            display: none;
+            width: 100%;
+            background: #1a1a1a;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        #pdfViewer {
+            width: 100%;
+            height: 750px;
+            border: none;
+            background: #fff;
+        }
+
+        .footer-line { height: 6px; background-color: var(--rojo-gob); margin-top: 40px; }
     </style>
 </head>
 <body>
+
     <div class="top-bar">
-        <img src="https://www.chileatiende.gob.cl/images/logo-cha.svg" height="45">
+        <img src="https://www.chileatiende.gob.cl/images/logo-cha.svg" alt="ChileAtiende" class="logo-cha">
+        <img src="https://www.chileatiende.gob.cl/images/gob.svg" alt="Gobierno de Chile" height="40">
     </div>
+
     <div class="container">
-        <div id="successBanner"><i class="fas fa-check-circle"></i> El certificado es válido, verifique los datos en el documento generado</div>
-        <div class="card">
-            <form id="verificadorForm">
-                <div class="form-group"><label>Folio *</label><input type="text" id="folio" required></div>
-                <div class="form-group"><label>Código de Verificación *</label><input type="text" id="codigo" required></div>
-                <button type="submit" id="btn">Consultar</button>
-            </form>
+        <div id="successBanner">
+            <i class="fas fa-check-circle"></i> El certificado es válido, verifique los datos en el documento generado
         </div>
-        <div id="pdfWrapper"><iframe id="viewer"></iframe></div>
+
+        <div class="card-verificacion">
+            <div class="card-header">
+                <h2>Verificación de certificados</h2>
+            </div>
+            <div class="card-body">
+                <form id="verificadorForm">
+                    <div class="form-group">
+                        <label>Folio *</label>
+                        <input type="text" id="folio" class="input-text" placeholder="Ej: 500946280862" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Código de Verificación *</label>
+                        <input type="text" id="codigo" class="input-text" placeholder="Ingrese el código" required>
+                    </div>
+                    <button type="submit" id="btnSubmit" class="btn-consultar">Consultar</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="pdfWrapper">
+            <iframe id="pdfViewer"></iframe>
+        </div>
     </div>
+
+    <div class="footer-line"></div>
+
     <script>
         const form = document.getElementById('verificadorForm');
+        const btn = document.getElementById('btnSubmit');
+        const successBanner = document.getElementById('successBanner');
+        const pdfWrapper = document.getElementById('pdfWrapper');
+        const pdfViewer = document.getElementById('pdfViewer');
+
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const btn = document.getElementById('btn');
-            btn.disabled = true; btn.innerHTML = 'Consultando...';
-            
+
+            successBanner.style.display = 'none';
+            pdfWrapper.style.display = 'none';
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Consultando...';
+
+            // El payload sigue enviando ambos, pero Make solo usará el folio para buscar
+            const payload = {
+                folio: document.getElementById('folio').value.trim(),
+                codigoVerificacion: document.getElementById('codigo').value.trim()
+            };
+
             try {
                 const response = await fetch('https://hook.us2.make.com/atmi1hlsixmbjhqpob6spcpkmpydw3oj', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        folio: document.getElementById('folio').value.trim(),
-                        codigoVerificacion: document.getElementById('codigo').value.trim()
-                    })
+                    body: JSON.stringify(payload)
                 });
-                const res = await response.json();
-                if (res.found) {
-                    document.getElementById('successBanner').style.display = 'block';
-                    const blob = new Blob([Uint8Array.from(atob(res.pdf), c => c.charCodeAt(0))], {type: 'application/pdf'});
-                    document.getElementById('viewer').src = URL.createObjectURL(blob);
-                    document.getElementById('pdfWrapper').style.display = 'block';
+
+                const result = await response.json();
+
+                if (result.found && result.pdf) {
+                    successBanner.style.display = 'block';
+                    
+                    // Convertimos el base64 a un Blob para el visor
+                    const base64Clean = result.pdf.replace(/^data:application\/pdf;base64,/, "");
+                    const byteCharacters = atob(base64Clean);
+                    const byteNumbers = new Array(byteCharacters.length);
+                    for (let i = 0; i < byteCharacters.length; i++) {
+                        byteNumbers[i] = byteCharacters.charCodeAt(i);
+                    }
+                    const byteArray = new Uint8Array(byteNumbers);
+                    const fileBlob = new Blob([byteArray], { type: 'application/pdf' });
+                    const fileURL = URL.createObjectURL(fileBlob);
+
+                    pdfViewer.src = `${fileURL}#toolbar=0`;
+                    pdfWrapper.style.display = 'block';
+                    successBanner.scrollIntoView({ behavior: 'smooth' });
+
                 } else {
-                    Swal.fire('No encontrado', 'Verifique los datos e intente nuevamente.', 'error');
+                    Swal.fire({
+                        title: 'Documento no encontrado',
+                        text: 'No pudimos localizar un certificado con el folio ingresado.',
+                        icon: 'error',
+                        confirmButtonColor: '#cc292b'
+                    });
                 }
-            } catch (err) {
-                Swal.fire('Error', 'No hubo respuesta del validador. Revise su escenario en Make.', 'warning');
+            } catch (error) {
+                Swal.fire({ title: 'Error', text: 'Problema al conectar con el servidor.', icon: 'error' });
             } finally {
-                btn.disabled = false; btn.innerHTML = 'Consultar';
+                btn.disabled = false;
+                btn.innerHTML = 'Consultar';
             }
         });
     </script>
