@@ -1,88 +1,236 @@
-<script>
-    const WEBHOOK = 'https://hook.us2.make.com/iq6ps3txx1jaxr91mje7sx47ynbta3kb';
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Verificación de Certificados - ChileAtiende</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
-    async function validar() {
-        const folio = document.getElementById('folio').value.trim();
-        const codigo = document.getElementById('codigo').value.trim();
-        
-        const payload = {
-            folio: folio,
-            codigoVerificacion: codigo
-        };
-        
-        const btn = document.getElementById('btn-aceptar');
-        btn.disabled = true;
-        
-        document.getElementById('spinner').classList.add('active');
-        document.getElementById('result-box').classList.remove('visible');
-
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 30000);
-
-        try {
-            const res = await fetch(WEBHOOK, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                body: JSON.stringify(payload),
-                signal: controller.signal
-            });
-            
-            clearTimeout(timeout);
-            const data = await res.json();
-            
-            document.getElementById('spinner').classList.remove('active');
-            
-            const box = document.getElementById('result-box');
-            const hdr = document.getElementById('result-header');
-            const bdy = document.getElementById('result-body');
-            
-            if (data.found === true && data.pdf) {
-                hdr.className = 'result-header';
-                hdr.style.cssText = 'background: #f0fdf4; color: #166534; border: 1px solid #4caf50; border-bottom: none;';
-                hdr.innerHTML = `<i class="fas fa-check-circle" style="color: #4caf50; font-size:1.2rem;"></i> <strong>El certificado es válido, verifique los datos en el documento generado</strong>`;
-                
-                // NUEVA LÓGICA DE PDF (Directo por Base64 URI)
-                const base64Clean = data.pdf.replace(/^data:application\/pdf;base64,/, "");
-                const pdfDataUri = "data:application/pdf;base64," + base64Clean;
-
-                bdy.style.padding = '10px';
-                bdy.innerHTML = `<iframe src="${pdfDataUri}" style="width:100%;height:750px;border:none;background:#fff;" title="Certificado PDF"></iframe>`;
-                
-            } else if (data.found === false) {
-                hdr.className = 'result-header';
-                hdr.style.cssText = 'background: #fdf3f2; color: #cc292b; border: 1px solid #cc292b; border-bottom: none;';
-                hdr.innerHTML = `<i class="fas fa-exclamation-triangle" style="color: #cc292b; font-size:1.2rem;"></i> <strong>Certificado no válido</strong>`;
-                bdy.style.padding = '0';
-                bdy.innerHTML = `<div class="error-body">No se encontró ningún certificado con los datos ingresados. Revise la información e intente nuevamente.</div>`;
-                
-            } else {
-                hdr.className = 'result-header';
-                hdr.style.cssText = 'background: #fdf3f2; color: #cc292b; border: 1px solid #cc292b; border-bottom: none;';
-                hdr.innerHTML = `<i class="fas fa-exclamation-circle" style="color: #cc292b; font-size:1.2rem;"></i> <strong>Respuesta inesperada</strong>`;
-                bdy.style.padding = '0';
-                bdy.innerHTML = `<div class="error-body">El validador arrojó una respuesta no reconocida. Intenta nuevamente en unos minutos.</div>`;
-            }
-            
-            box.classList.add('visible');
-            box.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-        } catch(err) {
-            clearTimeout(timeout);
-            document.getElementById('spinner').classList.remove('active');
-            
-            const box = document.getElementById('result-box');
-            const hdr = document.getElementById('result-header');
-            const bdy = document.getElementById('result-body');
-            
-            hdr.className = 'result-header';
-            hdr.style.cssText = 'background: #fdf3f2; color: #cc292b; border: 1px solid #cc292b; border-bottom: none;';
-            hdr.innerHTML = `<i class="fas fa-wifi" style="color: #cc292b; font-size:1.2rem;"></i> <strong>Error de conexión</strong>`;
-            bdy.style.padding = '0';
-            bdy.innerHTML = `<div class="error-body">Hubo un problema de conexión o el servidor tardó demasiado en responder. Verifica tu internet e intenta nuevamente.</div>`;
-            
-            box.classList.add('visible');
-        } finally {
-            btn.disabled = false;
+    <style>
+        :root {
+            --azul-institucional: #0f69b4;
+            --rojo-gob: #cc292b;
+            --verde-exito: #2e7d32;
+            --gris-fondo: #f4f4f4;
+            --gris-borde: #cccccc;
+            --texto-negro: #333333;
         }
-    }
-</script>
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Open Sans', sans-serif; }
+        body { background-color: var(--gris-fondo); color: var(--texto-negro); min-height: 100vh; }
+
+        .top-bar {
+            background: #fff;
+            padding: 15px 30px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo-cha { height: 45px; }
+
+        .container {
+            width: 100%;
+            max-width: 850px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        /* ── SPINNER STYLE ── */
+        .spinner { display: none; text-align: center; padding: 20px 0; }
+        .spinner.active { display: block; }
+        .spinner svg { animation: spin .9s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── RESULT BOXES ── */
+        #result-box { display: none; margin-top: 24px; border-radius: 4px; overflow: hidden; border: 1px solid #ddd; background: #fff;}
+        #result-box.visible { display: block; }
+        .result-header { padding: 15px 20px; font-weight: 600; font-size: 1rem; display: flex; align-items: center; gap: 10px; }
+        .result-body { padding: 0; background: #1a1a1a; font-size: 0.88rem; }
+        .error-body { padding: 20px; background: #fff; text-align: center; font-size: 1rem; color: #555;}
+
+        .card-verificacion {
+            background: #fff;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-top: 5px solid var(--azul-institucional);
+            margin-bottom: 30px;
+        }
+        .card-header { padding: 30px 40px 10px; }
+        .card-header h2 { font-size: 24px; color: var(--azul-institucional); font-weight: 700; }
+        .card-body { padding: 30px 40px; }
+
+        .form-group { margin-bottom: 25px; }
+        .form-group label { display: block; font-weight: 700; font-size: 15px; margin-bottom: 10px; }
+        .input-text {
+            width: 100%;
+            height: 50px;
+            padding: 12px 15px;
+            border: 1px solid var(--gris-borde);
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .btn-consultar {
+            background-color: var(--azul-institucional);
+            color: #fff;
+            border: none;
+            width: 100%;
+            height: 55px;
+            font-weight: 700;
+            font-size: 18px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-consultar:hover { background-color: #0d5999; }
+        .btn-consultar:disabled { background-color: #a0c4e1; cursor: not-allowed; }
+
+        .footer-line { height: 6px; background-color: var(--rojo-gob); margin-top: 40px; }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <img src="https://www.chileatiende.gob.cl/images/logo-cha.svg" alt="ChileAtiende" class="logo-cha">
+        <img src="https://www.chileatiende.gob.cl/images/gob.svg" alt="Gobierno de Chile" height="40">
+    </div>
+
+    <div class="container">
+        
+        <!-- CARD DE VERIFICACIÓN -->
+        <div class="card-verificacion">
+            <div class="card-header">
+                <h2>Verificación de certificados</h2>
+            </div>
+            <div class="card-body">
+                <form id="verificadorForm" onsubmit="event.preventDefault(); validar();">
+                    <div class="form-group">
+                        <label>Folio *</label>
+                        <input type="text" id="folio" class="input-text" placeholder="Ej: 500946280862" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Código de Verificación *</label>
+                        <input type="text" id="codigo" class="input-text" placeholder="Ingrese el código" required>
+                    </div>
+                    <button type="submit" id="btn-aceptar" class="btn-consultar">Consultar</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- SPINNER DE CARGA -->
+        <div class="spinner" id="spinner">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" stroke="#cccccc" stroke-width="3"/>
+                <path d="M12 2a10 10 0 0 1 10 10" stroke="#0f69b4" stroke-width="3" stroke-linecap="round"/>
+            </svg>
+            <p style="margin-top:10px;color:#666;font-size:0.9rem;font-weight:600;">Consultando servidor...</p>
+        </div>
+
+        <!-- CONTENEDOR DE RESULTADOS (PDF o ERRORES) -->
+        <div id="result-box">
+            <div class="result-header" id="result-header"></div>
+            <div class="result-body" id="result-body"></div>
+        </div>
+
+    </div>
+
+    <div class="footer-line"></div>
+
+    <!-- SCRIPT DEL BACK-END -->
+    <script>
+        const WEBHOOK = 'https://hook.us2.make.com/iq6ps3txx1jaxr91mje7sx47ynbta3kb';
+
+        async function validar() {
+            const folio = document.getElementById('folio').value.trim();
+            const codigo = document.getElementById('codigo').value.trim();
+            
+            const payload = {
+                folio: folio,
+                codigoVerificacion: codigo
+            };
+            
+            const btn = document.getElementById('btn-aceptar');
+            btn.disabled = true;
+            
+            document.getElementById('spinner').classList.add('active');
+            document.getElementById('result-box').classList.remove('visible');
+
+            // Timeout de 30 segundos de seguridad
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 30000);
+
+            try {
+                const res = await fetch(WEBHOOK, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify(payload),
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeout);
+                const data = await res.json();
+                
+                document.getElementById('spinner').classList.remove('active');
+                
+                const box = document.getElementById('result-box');
+                const hdr = document.getElementById('result-header');
+                const bdy = document.getElementById('result-body');
+                
+                if (data.found === true && data.pdf) {
+                    // Diseño de Éxito
+                    hdr.className = 'result-header';
+                    hdr.style.cssText = 'background: #f0fdf4; color: #166534; border: 1px solid #4caf50; border-bottom: none;';
+                    hdr.innerHTML = `<i class="fas fa-check-circle" style="color: #4caf50; font-size:1.2rem;"></i> <strong>El certificado es válido, verifique los datos en el documento generado</strong>`;
+                    
+                    // LÓGICA DE PDF CORREGIDA (Directo por Base64 URI)
+                    const base64Clean = data.pdf.replace(/^data:application\/pdf;base64,/, "");
+                    const pdfDataUri = "data:application/pdf;base64," + base64Clean;
+
+                    bdy.style.padding = '10px';
+                    bdy.innerHTML = `<iframe src="${pdfDataUri}" style="width:100%;height:750px;border:none;background:#fff;" title="Certificado PDF"></iframe>`;
+                    
+                } else if (data.found === false) {
+                    // Diseño de Error (No encontrado)
+                    hdr.className = 'result-header';
+                    hdr.style.cssText = 'background: #fdf3f2; color: #cc292b; border: 1px solid #cc292b; border-bottom: none;';
+                    hdr.innerHTML = `<i class="fas fa-exclamation-triangle" style="color: #cc292b; font-size:1.2rem;"></i> <strong>Certificado no válido</strong>`;
+                    bdy.style.padding = '0';
+                    bdy.innerHTML = `<div class="error-body">No se encontró ningún certificado con los datos ingresados. Revise la información e intente nuevamente.</div>`;
+                    
+                } else {
+                    // Respuesta Inesperada
+                    hdr.className = 'result-header';
+                    hdr.style.cssText = 'background: #fdf3f2; color: #cc292b; border: 1px solid #cc292b; border-bottom: none;';
+                    hdr.innerHTML = `<i class="fas fa-exclamation-circle" style="color: #cc292b; font-size:1.2rem;"></i> <strong>Respuesta inesperada</strong>`;
+                    bdy.style.padding = '0';
+                    bdy.innerHTML = `<div class="error-body">El validador arrojó una respuesta no reconocida. Intenta nuevamente en unos minutos.</div>`;
+                }
+                
+                box.classList.add('visible');
+                box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            } catch(err) {
+                clearTimeout(timeout);
+                document.getElementById('spinner').classList.remove('active');
+                
+                const box = document.getElementById('result-box');
+                const hdr = document.getElementById('result-header');
+                const bdy = document.getElementById('result-body');
+                
+                hdr.className = 'result-header';
+                hdr.style.cssText = 'background: #fdf3f2; color: #cc292b; border: 1px solid #cc292b; border-bottom: none;';
+                hdr.innerHTML = `<i class="fas fa-wifi" style="color: #cc292b; font-size:1.2rem;"></i> <strong>Error de conexión</strong>`;
+                bdy.style.padding = '0';
+                bdy.innerHTML = `<div class="error-body">Hubo un problema de conexión o el servidor tardó demasiado en responder. Verifica tu internet e intenta nuevamente.</div>`;
+                
+                box.classList.add('visible');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
